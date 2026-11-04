@@ -3,7 +3,7 @@
 ## 1. Integrantes del equipo
 - René Nicolás Acosta López
 - Germán Eduardo Ruiz Zúñiga
-- Betel
+- Betel Zurisadai Hernandez Sanchez
 
 ## 2. Descripción del ejemplo y caso de uso real
 El ejemplo consiste en el uso del texto completo de Don Quijote, un libro con miles de líneas. Queremos saber cuántas veces aparece cada palabra y cómo se distribuyen esas frecuencias. Hacerlo a mano, o leyendo el archivo línea por línea en una sola máquina, es lento y no escala si el texto crece a miles de libros.
