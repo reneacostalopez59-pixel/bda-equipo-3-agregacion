@@ -85,7 +85,44 @@ El resultado teórico esperado (si no hubiera bug): Las herramientas aggregate d
 ### 5.2 Resultado real 1:
 El resultado será únicamente record_count 38059. Debido al bug del framework en Hadoop 3.3.6, el sistema no separa el texto y simplemente cuenta el total de líneas del documento original.
 
-### 5.3 Resultado real 2 (otra versión de Hadoop):
+### 5.3 Resultados real 2 (Versión alterna: Hadoop 3.4.0)
+
+Al ejecutar los programas utilizando **Apache Hadoop 3.4.0** (`hadoop-mapreduce-examples-3.4.0.jar`) sobre el libro *Don Quijote de la Mancha* (`pg2000.txt`), el agregador procesó las **395,684 palabras totales** y **39,756 palabras únicas** de la obra. Los archivos completos generados se encuentran en la carpeta [`resultados_version_alterna/`](./resultados_version_alterna/).
+
+**Comandos ejecutados en Hadoop 3.4.0:**
+```bash
+export HADOOP_HOME=/opt/hadoop34
+export PATH=$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH
+
+hadoop jar $HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.4.0.jar aggregatewordcount /tmp/quijote_336 /tmp/salida_q_340_count 1 textinputformat
+hadoop jar $HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.4.0.jar aggregatewordhist /tmp/quijote_336 /tmp/salida_q_340_hist 1 textinputformat
+```
+
+**Top 10 palabras más repetidas en `aggregatewordcount` (Hadoop 3.4.0):**
+```text
+que	19546
+de	18133
+y	15976
+la	10329
+a	9627
+el	8009
+en	7941
+no	5622
+se	4751
+los	4701
+```
+
+**Resultado estadístico en `aggregatewordhist` (Hadoop 3.4.0):**
+```text
+WORD_HISTOGRAM	39756	1	1	19546	9.952812154140256	199.694962160176
+```
+* Significado de las columnas de `WORD_HISTOGRAM`:
+  * **Palabras únicas:** `39,756`
+  * **Mínimo:** `1` aparición
+  * **Mediana:** `1` aparición
+  * **Máximo:** `19,546` apariciones (palabra `"que"`)
+  * **Media (promedio):** `9.95` apariciones por palabra
+  * **Desviación estándar:** `199.69`
 
 
 ## 6. Explicación de Map y Reduce
@@ -94,6 +131,16 @@ El resultado será únicamente record_count 38059. Debido al bug del framework e
 3. Combina los valores de cada clave (suma, promedio, conteo) y escribe el resultado final en el archivo part-r-00000.
 
 ## 7. Errores comunes y cómo los resolvieron
-1. Bug en framework aggregate de Hadoop 3.3.6: El código del programa aggregate en Hadoop 3.3.6 tiene un error que le impide cargar su plugin interno (llamado WordCountPlugInClass). Este componente es el responsable de leer el texto, separar las palabras y asignarles las etiquetas matemáticas que el framework Aggregate necesita (como LongValueSum:).
-Al fallar la carga de esa herramienta de separación, Hadoop no sabe cómo procesar el texto y activa una acción de emergencia predeterminada, el cual solo devuelve el conteo de lineas del texto. Para solucionarlo, se realizó la práctica en otra versión de Hadoop.
+1. Bug en framework aggregate de Hadoop 3.3.6: El código del programa aggregate en Hadoop 3.3.6 tiene un error que le impide cargar su plugin interno (llamado WordCountPlugInClass). Este componente es el responsable de leer el texto, separar las palabras y asignarles las etiquetas matemáticas que el framework Aggregate necesita (como LongValueSum:). al fallar la carga de esa herramienta de separación, Hadoop no sabe cómo procesar el texto y activa una acción de emergencia predeterminada, el cual solo devuelve el conteo de lineas del texto. Para solucionarlo, se realizó la práctica en otra versión de Hadoop.
 
+2. **Bug en `ValueAggregatorJob` dentro de Hadoop 3.3.6 (solo devuelve `record_count`):**
+   * **Problema:** Al ejecutar `aggregatewordcount` sobre *Don Quijote de la Mancha* en **Hadoop 3.3.6**, el trabajo finaliza con éxito pero el archivo `part-r-00000` únicamente devuelve una línea con el total de renglones del archivo (`record_count 38059`), ignorando por completo las palabras. Esto ocurre porque en la versión 3.3.6 la clase `ValueAggregatorJob` pierde de la configuración el descriptor `WordCountAggregatorDescriptor` y ejecuta únicamente el descriptor base por defecto.
+   * **Solución y resultado obtenido:** Desplegamos **Apache Hadoop 3.4.0** (`/opt/hadoop34`), versión que corrige la carga del descriptor de agregación. Al correr nuevamente ambos programas con Hadoop 3.4.0 sobre el mismo archivo, el trabajo contabilizó las **395,684 palabras** (`39,756` palabras únicas) devolviendo el conteo real de cada vocablo y las métricas estadísticas completas en `WORD_HISTOGRAM` (almacenados en la carpeta `resultados_version_alterna/`).
+
+3. **Error de formato de entrada (`not a SequenceFile`):**
+   * **Problema:** Si no se especifica el formato de entrada, el framework de agregación asume que el archivo es un `SequenceFile` binario y arroja `IOException`.
+   * **Solución:** Añadir los argumentos `1 textinputformat` al final del comando para indicar 1 Reducer y lectura de texto plano.
+
+4. **Error de carpeta de salida existente (`FileAlreadyExistsException`):**
+   * **Problema:** Hadoop detiene el trabajo si la carpeta de salida en `/tmp` ya existe de una prueba anterior.
+   * **Solución:** Eliminar las carpetas de salida previas con `rm -rf` antes de ejecutar nuevamente el comando.
