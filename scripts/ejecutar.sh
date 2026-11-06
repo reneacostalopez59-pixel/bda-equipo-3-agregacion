@@ -10,7 +10,8 @@ docker start -ai hadoop
 
 
 ## ABRE OTRA TERMINAL EN TU COMPUTADORA Y SIGUE CON:
-
+# Regresa a tu directorio inicial:
+cd proyecto_hadoop # o ingresa la ruta completa si guardaste en un directorio especifico
 # 1. Crea la estructura de carpetas dentro del contenedor como usuario root
 docker exec -u root hadoop mkdir -p /tmp/equipo3/datos_entrada
 
