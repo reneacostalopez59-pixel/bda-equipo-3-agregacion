@@ -16,8 +16,8 @@ Contar con un contenedor docker previamente instalado con `Debian 12`, y haber i
 
 ## 4. Paso a paso
 ### 4.1 Crea la carpeta de tu práctica y entra en ella
-mkdir proyecto_hadoop
-cd proyecto_hadoop
+`mkdir proyecto_hadoop
+cd proyecto_hadoop`
 
 ### 4.2 Descarga el libro en texto plano
 Descargalo através del github o utiliza el siguiente comando:
@@ -29,6 +29,7 @@ Al ejecutar el contenedor te meterá al sistema operativo del contenedor, deber�
 
 
 ### 4.4 ABRE OTRA TERMINAL EN TU COMPUTADORA Y SIGUE CON:
+Regresa a la carpeta inicial donde guardaste el archivo `quijote.txt`, en nuestro caso `proyecto_hadoop`
 1. Crea la estructura de carpetas dentro del contenedor como usuario root
 
 `docker exec -u root hadoop mkdir -p /tmp/equipo3/datos_entrada`
